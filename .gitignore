@@ -1,4 +1,22 @@
+# Dependencies
 node_modules
-.DS_Store
-*.log
+/node_modules
+*/node_modules
+
+# Environment Variables
 .env
+.env.local
+.env.*
+
+# System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Build Outputs
+dist/
+build/

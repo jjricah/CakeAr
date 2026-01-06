@@ -1,89 +1,142 @@
-import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+// frontend/src/pages/Dashboard.jsx
+import { useContext, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
-const Dashboard = () => {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
+// Components
+import MainLayout from '../components/MainLayout';
+import HomeTab from '../views/buyer/HomeTab';
+import SearchTab from '../views/buyer/SearchTab';
+import ProfileTab from '../views/buyer/ProfileTab';
+import MessagesTab from '../components/MessagesTab';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+const Dashboard = ({ activeTab, setActiveTab }) => {
+  const { user, logout, savedDesigns } = useContext(AuthContext); 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [initialSearchType, setInitialSearchType] = useState('cakes'); 
+
+  // ✅ FIXED: Handle incoming navigation state (e.g. from "Chat" button on Shop Profile)
+  useEffect(() => {
+    let initialChatData = null;
+    
+    // Check for the keys passed by ShopProfile or other components
+    if (location.state?.initiateChat) {
+        // This is the key used by the ShopProfile fix
+        initialChatData = location.state.initiateChat;
+    } else if (location.state?.activeConversation) {
+        // Kept for backward compatibility if other components use this
+        initialChatData = location.state.activeConversation;
+    }
+
+    if (initialChatData) {
+        setSelectedChat(initialChatData);
+        // FIX: Ensure the tab name is set to 'message'
+        setActiveTab('message'); 
+    } else if (location.state?.activeTab) {
+      // Only set tab if no chat initiation is present
+      setActiveTab(location.state.activeTab);
+    }
+    
+    // FIX 3: Handle initial search type passed from ProfileTab
+    if (location.state?.initialSearchType) {
+        setInitialSearchType(location.state.initialSearchType);
+    }
+    
+    // Clean up history state so refresh doesn't reset it
+    window.history.replaceState({}, document.title);
+    
+  }, [location.state, user?.role, setActiveTab]);
+
+
+  const renderContent = () => {
+    if (activeTab === 'home') {
+        return (
+            <div className="flex-grow">
+                <HomeTab user={user} />
+            </div>
+        );
+    } else if (activeTab === 'search') {
+        // Search needs to be wrapped for MD
+        return (
+            <div className="flex-grow">
+                <SearchTab navigate={navigate} initialType={initialSearchType} />
+            </div>
+        );
+    } else if (activeTab === 'message') { // ✅ CRITICAL: Tab name is 'message'
+        // Guest View for Messages
+        if (!user) {
+            return (
+                <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 animate-fade-in">
+                    <div className="w-24 h-24 bg-[#F3EFE0] dark:bg-[#2C2622] rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner">
+                        💬
+                    </div>
+                    <h2 className="text-2xl font-bold text-[#4A403A] dark:text-[#F3EFE0] mb-3">Login to chat</h2>
+                    <p className="text-[#B0A69D] dark:text-[#E6DCCF] mb-8 text-sm max-w-xs mx-auto">
+                        Connect with bakers, discuss designs, and track your custom orders.
+                    </p>
+                    <button 
+                        onClick={() => navigate('/login')} 
+                        className="px-10 py-3.5 bg-[#C59D5F] text-white rounded-xl font-bold shadow-lg hover:bg-[#B0894F] transition w-full max-w-xs active:scale-95"
+                    >
+                        Login / Sign Up
+                    </button>
+                </div>
+            );
+        }
+
+        // Messages needs a fixed size or a controlled container
+        return (
+            <div className="w-full max-w-7xl mx-auto bg-white dark:bg-[#4A403A] md:rounded-2xl shadow-sm border-y md:border border-[#E6DCCF] dark:border-[#2C2622] overflow-hidden flex-grow flex">
+                <MessagesTab 
+                    // CRITICAL: Pass the state and setter correctly
+                    activeChat={selectedChat} 
+                    setActiveChat={setSelectedChat} 
+                    user={user} 
+                    mode="buyer"
+                />
+            </div>
+        );
+    } else if (activeTab === 'profile') {
+        // Guest View for Profile Tab
+        if (!user) {
+            return (
+                <div className="flex flex-col items-center justify-center h-[60vh] text-center p-6 animate-fade-in">
+                    <div className="w-24 h-24 bg-[#F3EFE0] dark:bg-[#2C2622] rounded-full flex items-center justify-center text-4xl mb-6 shadow-inner">
+                        👤
+                    </div>
+                    <h2 className="text-2xl font-bold text-[#4A403A] dark:text-[#F3EFE0] mb-3">Login to view profile</h2>
+                    <p className="text-[#B0A69D] dark:text-[#E6DCCF] mb-8 text-sm max-w-xs mx-auto">
+                        Sign in to track your orders, save your cake designs, and manage your account settings.
+                    </p>
+                    <button 
+                        onClick={() => navigate('/login')} 
+                        className="px-10 py-3.5 bg-[#C59D5F] text-white rounded-xl font-bold shadow-lg hover:bg-[#B0894F] transition w-full max-w-xs active:scale-95"
+                    >
+                        Login / Sign Up
+                    </button>
+                </div>
+            );
+        }
+
+        // Profile is best contained to max-w-lg for readability
+        return (
+            <div className="flex-grow">
+                <ProfileTab 
+                    user={user} 
+                    navigate={navigate} 
+                    logout={() => { logout(); navigate('/login'); }} 
+                    savedDesigns={savedDesigns} 
+                />
+            </div>
+        );
+    }
+    return null;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Cake AR</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-white text-purple-600 px-5 py-2 rounded-lg font-semibold hover:bg-gray-100 transform hover:-translate-y-0.5 transition duration-200"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <h2 className="text-3xl font-bold text-gray-800 mb-3">Welcome, {user?.name}!</h2>
-        <p className="text-gray-600 mb-8">Email: {user?.email}</p>
-        
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <button
-            onClick={() => navigate('/shop')}
-            className="bg-gradient-to-br from-purple-500 to-indigo-600 text-white p-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-200"
-          >
-            <div className="text-5xl mb-4">🛍️</div>
-            <h3 className="text-xl font-bold mb-2">Shop Cakes</h3>
-            <p className="text-purple-100">Browse our catalog</p>
-          </button>
-
-          <button
-            onClick={() => navigate('/cake-builder')}
-            className="bg-gradient-to-br from-pink-500 to-rose-600 text-white p-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-200"
-          >
-            <div className="text-5xl mb-4">🎂</div>
-            <h3 className="text-xl font-bold mb-2">Create Custom Cake</h3>
-            <p className="text-pink-100">Design your AR cake</p>
-          </button>
-
-          <button
-            onClick={() => navigate('/my-orders')}
-            className="bg-gradient-to-br from-cyan-500 to-blue-600 text-white p-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-200"
-          >
-            <div className="text-5xl mb-4">📦</div>
-            <h3 className="text-xl font-bold mb-2">My Orders</h3>
-            <p className="text-cyan-100">Track your orders</p>
-          </button>
-
-          <button
-            onClick={() => navigate('/track-order')}
-            className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition duration-200"
-          >
-            <div className="text-5xl mb-4">📍</div>
-            <h3 className="text-xl font-bold mb-2">Track Order</h3>
-            <p className="text-orange-100">Track by order number</p>
-          </button>
-        </div>
-
-        {/* Info Card */}
-        <div className="bg-white rounded-xl shadow-md p-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Getting Started</h3>
-          <p className="text-gray-700 leading-relaxed mb-4">
-            Welcome to Cake AR! Start creating beautiful 3D cake designs with our interactive builder.
-          </p>
-          <ul className="list-disc list-inside text-gray-700 space-y-2">
-            <li>Choose cake size (small, medium, or large)</li>
-            <li>Add multiple layers with different flavors</li>
-            <li>Select frosting type and color</li>
-            <li>Decorate with toppings like cherries, sprinkles, candles, and flowers</li>
-            <li>Save your designs for later</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
+  return renderContent();
 };
 
 export default Dashboard;

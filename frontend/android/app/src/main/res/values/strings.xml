@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CREAKE</string>
+    <string name="title_activity_main">CREAKE</string>
+    <string name="package_name">com.creake.app</string>
+    <string name="custom_url_scheme">com.creake.app</string>
+</resources>

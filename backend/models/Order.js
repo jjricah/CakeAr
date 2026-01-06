@@ -1,118 +1,80 @@
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
-  product: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  image: {
-    type: String,
-  },
-  customization: {
-    type: Object,
-  },
+    title: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true },
+    image: { type: String, required: true },
+    type: { type: String, enum: ['standard', 'custom'], default: 'standard' },
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+    },
+    designSubmission: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'DesignSubmission',
+    },
+    baker: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
+    }
 });
 
-const orderSchema = new mongoose.Schema(
-  {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
+const orderSchema = new mongoose.Schema({
+    buyer: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     },
-    orderItems: [orderItemSchema],
+    items: [orderItemSchema],
+    totalAmount: {
+        type: Number,
+        required: true,
+        default: 0
+    },
     shippingAddress: {
-      fullName: { type: String, required: true },
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
-      phone: { type: String, required: true },
+        street: { type: String, required: true },
+        city: { type: String, required: true },
+        barangay: { type: String, required: true },
     },
     paymentMethod: {
-      type: String,
-      required: true,
-      enum: ['card', 'paypal', 'cash'],
-      default: 'card',
+        type: String,
+        required: true,
+        enum: ['COD', 'GCash']
     },
-    paymentResult: {
-      id: String,
-      status: String,
-      updateTime: String,
-      emailAddress: String,
+    paymentReference: {
+        type: String
     },
-    itemsPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
+    proofOfPaymentImage: {
+        type: String
     },
-    taxPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
+    dateNeeded: {
+        type: Date,
+        required: true
     },
-    shippingPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
+    specialRequests: {
+        type: String
     },
-    totalPrice: {
-      type: Number,
-      required: true,
-      default: 0.0,
+    orderStatus: {
+        type: String,
+        required: true,
+        enum: ['pending_review', 'accepted', 'baking', 'ready_to_ship', 'completed', 'cancelled'],
+        default: 'pending_review'
     },
-    isPaid: {
-      type: Boolean,
-      required: true,
-      default: false,
+    paymentStatus: {
+        type: String,
+        required: true,
+        enum: ['unpaid', 'pending_verification', 'verified', 'failed', 'paid'],
+        default: 'unpaid'
     },
-    paidAt: {
-      type: Date,
-    },
-    isDelivered: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    deliveredAt: {
-      type: Date,
-    },
-    status: {
-      type: String,
-      enum: ['pending', 'confirmed', 'preparing', 'ready', 'out-for-delivery', 'delivered', 'cancelled'],
-      default: 'pending',
-    },
-    orderNumber: {
-      type: String,
-      unique: true,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-// Generate order number before saving
-orderSchema.pre('save', async function (next) {
-  if (!this.orderNumber) {
-    const count = await mongoose.model('Order').countDocuments();
-    this.orderNumber = `ORD${Date.now()}-${count + 1}`;
-  }
-  next();
+    deliveryDetails: {
+        trackingNumber: { type: String },
+        courier: { type: String },
+        estimatedDelivery: { type: Date }
+    }
+}, {
+    timestamps: true
 });
 
 module.exports = mongoose.model('Order', orderSchema);
