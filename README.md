@@ -1,164 +1,327 @@
-# CREAKE - Cake AR Customizer and Marketplace
+# 🎂 Cake AR - E-commerce Platform with AR Cake Builder
 
-CREAKE is a full-stack web and mobile application that allows users to design and customize their own 3D cakes using Augmented Reality, and purchase them from a marketplace of bakers.
+A full-stack MERN e-commerce platform for custom cake ordering with AR 3D visualization, built with React, Node.js, Express, MongoDB, and Three.js.
+
+## ✨ Features
+
+### Customer Features
+- 🛍️ **Product Catalog** - Browse cakes by category with search and filters
+- 🎂 **AR Cake Builder** - Design custom cakes in 3D using Three.js
+- 🛒 **Shopping Cart** - Add items, manage quantities with localStorage persistence
+- 💳 **Checkout System** - Complete order placement with shipping details
+- 📦 **Order Tracking** - Track orders with detailed status timeline
+- 🔐 **Authentication** - Secure JWT-based login/registration
+
+### Admin Features
+- 📊 **Dashboard** - Real-time statistics, revenue charts, recent orders
+- 📦 **Order Management** - View all orders, update status, manage deliveries
+- 🎂 **Product Management** - Full CRUD operations for products
+- 📁 **Category Management** - Create and manage product categories
+- 👥 **Customer Management** - View customer list with order history
+- 🔒 **Role-based Access** - Admin-only routes with authentication
+
+### Technical Features
+- 💰 **Philippine Peso (₱)** currency with 12% VAT
+- 📱 Responsive design with Tailwind CSS
+- 🎨 3D cake visualization with Three.js/React Three Fiber
+- 🔄 Real-time stock management
+- 📈 Sales analytics and reporting
+- 🚀 RESTful API architecture
+
+## Project Structure
+
+```
+CAREAR/
+├── backend/                 # Node.js + Express API
+│   ├── config/             # Database configuration
+│   ├── controllers/        # Route controllers
+│   ├── middleware/         # Custom middleware (auth)
+│   ├── models/             # Mongoose models
+│   ├── routes/             # API routes
+│   ├── scripts/            # Database seeding scripts
+│   ├── .env                # Environment variables
+│   ├── package.json
+│   └── server.js           # Entry point
+│
+├── frontend/               # React + Vite Web App
+│   ├── public/
+│   ├── src/
+│   │   ├── components/     # Reusable components
+│   │   ├── context/        # React context (Auth, Cart)
+│   │   ├── pages/          # Page components
+│   │   ├── services/       # API services
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   ├── index.html
+│   ├── package.json
+│   └── vite.config.js
+│
+└── CakeAR/                 # React Native Mobile App
+    ├── android/            # Android native code
+    ├── ios/                # iOS native code
+    ├── src/
+    │   ├── assets/         # Fonts, icons, images
+    │   ├── components/     # Reusable components
+    │   ├── navigation/     # Navigation configuration
+    │   ├── screens/        # Screen components
+    │   ├── services/       # API services
+    │   ├── styles/         # Styles and theme
+    │   ├── types/          # TypeScript types
+    │   └── utils/          # Utility functions
+    ├── App.tsx             # App entry point
+    ├── package.json
+    └── tsconfig.json
+```
 
 ## Features
-
-*   **User Authentication:** Secure user registration and login with JWT.
-*   **3D Cake Customizer:** An interactive 3D cake builder using Three.js and React Three Fiber.
-*   **Augmented Reality View:** View your custom cake in AR on supported mobile devices.
-*   **Marketplace:** Browse cakes and bakers, view shop profiles, and make purchases.
-*   **Order Management:** Users can track their orders, and sellers can manage their incoming orders.
-*   **Seller Dashboard:** A dedicated dashboard for bakers to manage their products, orders, and shop settings.
-*   **Admin Panel:** An admin dashboard to manage users, products, orders, and view reports.
-*   **Real-time Chat:** Real-time messaging between buyers and sellers.
-*   **Notifications:** In-app notifications for important events.
-*   **Email Notifications:** Email notifications for events like registration and order confirmation.
-*   **Secure Payments:** Integration with a payment gateway for secure transactions (Stripe/PayPal - specific integration to be confirmed).
-*   **Image Uploads:** Cloudinary integration for handling image uploads for product and profile pictures.
-
-## Tech Stack
-
-### Frontend
-
-*   **React:** A JavaScript library for building user interfaces.
-*   **Vite:** A fast build tool for modern web projects.
-*   **React Router:** For routing in the React application.
-*   **Three.js, React Three Fiber, React Three XR:** For 3D rendering and AR functionality.
-*   **Capacitor:** For building cross-platform mobile apps.
-*   **Tailwind CSS:** A utility-first CSS framework for styling.
-*   **Axios:** For making HTTP requests to the backend.
-*   **date-fns, nanoid, recharts:** For date formatting, unique ID generation, and charts.
-
-### Backend
-
-*   **Node.js & Express:** For building the RESTful API.
-*   **MongoDB & Mongoose:** As the database and ODM.
-*   **JSON Web Tokens (JWT):** For user authentication.
-*   **Bcrypt.js:** For password hashing.
-*   **Cloudinary & Multer:** For image storage and handling file uploads.
-*   **Nodemailer:** for sending emails.
-*   **CORS, dotenv:** For handling Cross-Origin Resource Sharing and environment variables.
-
-## Getting Started
+Installation & Setup
 
 ### Prerequisites
 
-*   Node.js and npm installed
-*   MongoDB installed and running
-*   A Cloudinary account for image uploads
-*   An email service provider (e.g., Gmail) for sending emails
+- **Node.js** (v18 or higher)
+- **MongoDB** (local or MongoDB Atlas cloud instance)
+- **npm** or **yarn** package manager
+- **Android Studio** (for Android development)
+- **JDK 17** (for React Native Android builds)
 
-### Installation
+### 1. Backend Setup
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/creake.git
-    cd creake
-    ```
+1. **Navigate to the backend directory:**
+```bash
+cd backend
+```
 
-2.  **Backend Setup:**
-    ```bash
-    cd backend
-    npm install
-    ```
-    Create a `.env` file in the `backend` directory and add the following environment variables:
-    ```
-    PORT=5001
-    MONGO_URI=your_mongodb_connection_string
-    JWT_SECRET=your_jwt_secret
-    CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-    CLOUDINARY_API_KEY=your_cloudinary_api_key
-    CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-    EMAIL_HOST=your_email_host
-    EMAIL_PORT=your_email_port
-    EMAIL_USER=your_email_user
-    EMAIL_PASS=your_email_password
-    ```
+2. **Install dependencies:**
+```bash
+npm install
+```
 
-3.  **Frontend Setup:**
-    ```bash
-    cd ../frontend
-    npm install
-    ```
-    Create a `.env` file in the `frontend` directory and add the following environment variable:
-    ```
-    VITE_API_URL=http://localhost:5001/api
-    ```
+3. **Configure environment variables:**
 
-### Running the Application
+The `.env` file is already configured with MongoDB connection:
+```env
+PORT=5001
+MONGO_URI=mongodb+srv://larksolutionstech:21void@larkchive.aaxfp3a.mongodb.net/Cakear
+JWT_SECRET=your_jwt_secret_key_here_change_this_in_production
+NODE_ENV=development
+```
 
-1.  **Start the backend server:**
-    ```bash
-    cd backend
-    npm run dev
-    ```
+4. **Create admin user (optional):**
+```bash
+node scripts/createAdmin.js
+```
 
-2.  **Start the frontend development server:**
-    ```bash
-    cd ../frontend
-    npm run dev
-    ```
+5. **Seed database with sample data (optional):**
+```bash
+node scripts/seedData.js
+```
 
-The application will be available at `http://localhost:5173`.
+6. **Start the backend server:**
+```bash
+npm run dev
+```
+
+✅ Backend will run on `http://localhost:5001`
+
+---
+
+### 2. Frontend Web App Setup
+
+1. **Navigate to the frontend directory:**
+```bash
+cd frontend
+```
+
+2. **Install dependencies:**
+```bash
+npm install
+```
+
+3. **Start the development server:**
+```bash
+npm run dev
+```
+
+✅ Frontend will run on `http://localhost:3000`
+
+---
+
+### 3. CakeAR Mobile App Setup
+
+#### Prerequisites for React Native
+- Install **Watchman** (macOS): `brew install watchman`
+- Install **Android Studio** with Android SDK
+- Configure environment variables:
+  ```bash
+  export ANDROID_HOME=$HOME/Library/Android/sdk
+  export PATH=$PATH:$ANDROID_HOME/emulator
+  export PATH=$PATH:$ANDROID_HOME/tools
+  export PATH=$PATH:$ANDROID_HOME/tools/bin
+  export PATH=$PATH:$ANDROID_HOME/platform-tools
+  ```
+
+#### Installation Steps
+
+1. **Navigate to the CakeAR directory:**
+```bash
+cd CakeAR
+```
+
+2. **Install dependencies:**
+```bash
+yarn install
+```
+
+3. **Link custom fonts and assets:**
+```bash
+npx react-native-asset
+```
+
+#### Running on Android
+
+1. **Start an Android emulator** or connect a physical device
+
+2. **Run the app:**
+```bash
+yarn android
+```
+
+Or manually:
+```bash
+# Clean build (if needed)
+cd android && ./gradlew clean && cd ..
+
+# Build and run
+npx react-native run-android
+```
+
+✅ Android app will launch on emulator/device
+
+#### Troubleshooting Android
+
+**Metro bundler issues:**
+```bash
+yarn start --reset-cache
+```
+
+**Android build errors:**
+```bash
+cd android
+./gradlew clean
+cd ..
+yarn android
+```
+
+**Clear all caches:**
+```bash
+watchman watch-del-all
+rm -rf node_modules
+rm -rf $TMPDIR/react-*
+yarn install
+```
+
+---
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/me` - Get current user (protected)
+
+### Products
+- `GET /api/products` - Get all products
+- `GET /api/products/:id` - Get single product
+- `POST /api/products` - Create product (admin)
+- `PUT /api/products/:id` - Update product (admin)
+- `DELETE /api/products/:id` - Delete product (admin)
+
+### Categories
+- `GET /api/categories` - Get all categories
+- `GET /api/categories/:id` - Get single category
+- `POST /api/categories` - Create category (admin)
+- `PUT /api/categories/:id` - Update category (admin)
+- `DELETE /api/categories/:id` - Delete category (admin)
+
+### Orders
+- `POST /api/orders` - Create new order (protected)
+- `GET /api/orders` - Get user's orders (protected)
+- `GET /api/orders/:id` - Get single order (protected)
+- `GET /api/orders/admin/all` - Get all orders (admin)
+- `PUT /api/orders/:id/status` - Update order status (admin)
+
+### Cakes (Custom Designs)
+- `POST /api/cakes` - Create a new cake design (protected)
+- `GET /api/cakes` - Get all user's cakes (protected)
+- `GET /api/cakes/:id` - Get single cake (protected)
+- `PUT /api/cakes/:id` - Update cake design (protected)
+- `DELETE /api/cakes/:id` - Delete cake (protected)
+
+### Admin
+- `POST /api/admin/login` - Admin login
+- `GET /api/admin/dashboard` - Get dashboard stats (admin)
+- `GET /api/admin/orders` - Get all orders (admin)
+- `GET /api/admin/customers` - Get all customers (admin)
 
 ## Available Scripts
 
 ### Backend
+- `npm start` - Run the server in production mode
+- `npm run dev` - Run the server in development mode with nodemon
+- `node scripts/createAdmin.js` - Create admin user
+- `node scripts/seedData.js` - Seed sample data
 
-*   `npm start`: Starts the server in production mode.
-*   `npm run dev`: Starts the server in development mode with nodemon.
-*   `npm run cleanup:allproducts`: Deletes all products from the database.
-*   `npm run make:admin`: Gives admin privileges to a user.
-*   `npm run seed:assets`: Seeds the database with initial assets.
+### Frontend (Web)
+- `npm run dev` - Start the Vite development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
 
-### Frontend
+### Mobile App (CakeAR)
+- `yarn start` - Start Metro bundler
+- `yarn android` - Run on Android emulator/device
+- `yarn start --reset-cache` - Reset Metro cache
+- `npx react-native-asset` - Link custom fonts/assets
 
-*   `npm run dev`: Starts the Vite development server.
-*   `npm run build`: Builds the application for production.
-*   `npm run preview`: Previews the production build locally.
+## Technology Stack
 
-## API Endpoints
+### Backend
+- **Express.js** - Web framework
+- **MongoDB** - Database (MongoDB Atlas)
+- **Mongoose** - ODM
+- **bcryptjs** - Password hashing
+- **jsonwebtoken** - JWT authentication
+- **cors** - Cross-origin resource sharing
+- **dotenv** - Environment variables
 
-The backend API provides the following endpoints:
+### Frontend (Web)
+- **React 18** - UI library
+- **Vite** - Build tool and dev server
+- **React Router DOM** - Routing
+- **Axios** - HTTP client
+- **Tailwind CSS** - Styling
+- **Three.js** - 3D graphics
+- **@react-three/fiber** - React renderer for Three.js
+- **@react-three/drei** - Useful helpers for React Three Fiber
 
-*   `POST /api/auth/register` - Register a new user
-*   `POST /api/auth/login` - Login a user
-*   `GET /api/users` - Get all users (admin)
-*   `GET /api/shop/:bakerId` - Get a baker's shop profile
-*   `GET /api/products` - Get all products
-*   `GET /api/products/:id` - Get a single product
-*   `POST /api/orders` - Create a new order
-*   `GET /api/orders/myorders` - Get orders for the logged-in user
-*   `...and more`
+### Mobile App (CakeAR)
+- **React Native 0.83** - Mobile framework
+- **TypeScript** - Type safety
+- **React Navigation** - Navigation library
+  - Native Stack Navigator
+  - Bottom Tabs Navigator
+- **react-native-vector-icons** - Material Icons
+- **react-native-safe-area-context** - Safe area handling
+- **Axios** - HTTP client
+- **AsyncStorage** - Local storage
+- **@viro-community/react-viro** - AR functionality (configured)
 
-## Folder Structure
-
-```
-.
-├── backend
-│   ├── config          # Database connection, etc.
-│   ├── controllers     # Request handling logic
-│   ├── middleware      # Custom middleware (auth, uploads)
-│   ├── models          # Mongoose schemas
-│   ├── routes          # API routes
-│   └── server.js       # Main backend entry point
-└── frontend
-    ├── public          # Static assets
-    ├── src
-    │   ├── assets      # Images, fonts, etc.
-    │   ├── components  # Reusable React components
-    │   ├── context     # Auth and Cart context
-    │   ├── pages       # Main page components
-    │   ├── services    # API service
-    │   └── App.jsx     # Main React app component
-    └── capacitor.config.json # Capacitor configuration
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a pull request.
+### Development Tools
+- **Nodemon** - Auto-restart server
+- **ESLint** - Code linting
+- **Watchman** - File watching (React Native)
+- **Metro** - React Native bundler
 
 ## License
 
-This project is licensed under the ISC License.
+ISC

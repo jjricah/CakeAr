@@ -1,155 +1,145 @@
-// frontend/src/pages/Cart.jsx
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
-import { AuthContext } from '../context/AuthContext';
-import SubHeader from '../components/SubHeader'; 
-import * as Icons from '../components/Icons';   
-import AlertModal from '../components/common/AlertModal';
+import { formatCurrency } from '../utils/currency';
 
 const Cart = () => {
-  // 1. Destructure updateCartItem from context
-  const { cartItems, removeFromCart, updateCartItemQuantity } = useContext(CartContext);
-  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-  const [selectedIndices, setSelectedIndices] = useState([]);
-  const [alertModal, setAlertModal] = useState({ isOpen: false, title: '', message: '' });
+  const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useContext(CartContext);
 
-  const toggleSelect = (index) => {
-    if (selectedIndices.includes(index)) setSelectedIndices(selectedIndices.filter(i => i !== index));
-    else setSelectedIndices([...selectedIndices, index]);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIndices.length === cartItems.length) setSelectedIndices([]);
-    else setSelectedIndices(cartItems.map((_, i) => i));
-  };
-
-  // 2. NEW: Handle Quantity Logic now uses unique item ID
-  const handleQuantityChange = (index, delta) => {
-    const item = cartItems[index];
-    const newQuantity = item.quantity + delta;
-
-    if (newQuantity < 1) return;
-
-    // ✅ FIX: Use the dedicated quantity update function
-    updateCartItemQuantity(item.id, newQuantity);
-  };
-
-  const selectedSubtotal = cartItems.filter((_, index) => selectedIndices.includes(index)).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  
-  const handleProceedToCheckout = () => {
-    if (selectedIndices.length === 0) {
-        return setAlertModal({ isOpen: true, title: 'No Items Selected', message: 'Please select an item to proceed to checkout.' });
+  const handleCheckout = () => {
+    if (cartItems.length === 0) {
+      alert('Your cart is empty');
+      return;
     }
-    // Filter the actual item objects by the selected indices
-    const itemsToBuy = cartItems.filter((_, index) => selectedIndices.includes(index));
-    sessionStorage.setItem('checkoutItems', JSON.stringify(itemsToBuy)); // Store selected items temporarily
-    navigate('/checkout', { state: { itemsToBuy } });
+    navigate('/checkout');
   };
-
-  const handleItemClick = (item, index) => {
-    if (item.type === 'custom' || item.type === 'scratch_build') {
-      const baseUnit = item.quantity > 0 ? item.price / item.quantity : item.price;
-      // Pass item.id to identify the specific item being edited in cart
-      navigate('/cake-builder', { state: { initialConfig: item.selectedOptions, mode: 'edit', basePrice: baseUnit, fromCart: true, cartId: item.id } });
-    } else navigate(`/product/${item._id}`);
-  };
-
-  if (cartItems.length === 0) return (
-    // Ensured min-h-screen and centered layout for empty state
-    <div className="min-h-screen flex flex-col items-center justify-center font-sans text-[#4A403A] dark:text-[#F3EFE0] bg-[#F9F7F2] dark:bg-[#1E1A17]">
-      <div className="text-6xl mb-4 opacity-50"><Icons.Cart /></div>
-      <h2 className="text-lg font-bold mb-2">Cart is empty</h2>
-      <button onClick={() => navigate('/dashboard')} className="text-[#C59D5F] font-bold text-sm border-b-2 border-[#C59D5F]">Go shopping</button>
-    </div>
-  );
 
   return (
-    <>
-        <AlertModal
-            isOpen={alertModal.isOpen}
-            title={alertModal.title}
-            message={alertModal.message}
-            onClose={() => setAlertModal({ isOpen: false, title: '', message: '' })}
-        />
-        <div className="min-h-screen font-sans text-[#4A403A] dark:text-[#F3EFE0] pb-28 bg-[#F9F7F2] dark:bg-[#1E1A17]">
-          
-          {/* HEADER */}
-          <SubHeader title={`My Cart (${cartItems.length})`} />
-
-          <div className="p-4 space-y-4 md:p-6">
-            {/* Select All */}
-            <div className="flex items-center gap-3 bg-white dark:bg-[#4A403A] p-4 rounded-2xl border border-[#E6DCCF] dark:border-[#2C2622] shadow-sm">
-              <input type="checkbox" className="w-5 h-5 accent-[#C59D5F] cursor-pointer" checked={cartItems.length > 0 && selectedIndices.length === cartItems.length} onChange={toggleSelectAll} />
-              <span className="font-bold text-sm">Select All Items</span>
-            </div>
-
-            {/* List */}
-            {cartItems.map((item, index) => (
-              // Use item.id as the key for best practice
-              <div key={item.id} className="bg-white dark:bg-[#4A403A] p-3 rounded-2xl flex gap-3 shadow-sm border border-[#E6DCCF] dark:border-[#2C2622] items-center relative group">
-                <div className="relative z-10 pl-1">
-                  <input type="checkbox" className="w-5 h-5 accent-[#C59D5F] cursor-pointer" checked={selectedIndices.includes(index)} onChange={() => toggleSelect(index)} />
-                </div>
-                
-                <div className="flex-1 flex gap-3 items-center overflow-hidden">
-                    {/* Click Image to Edit */}
-                    <div className="w-16 h-16 bg-[#F9F7F2] dark:bg-[#2C2622] rounded-xl overflow-hidden flex-shrink-0 border border-transparent hover:border-[#C59D5F] transition flex items-center justify-center cursor-pointer" onClick={() => handleItemClick(item, index)}>
-                      {item.image ? <img src={item.image} className="w-full h-full object-cover" alt={item.title}/> : <span className="text-2xl opacity-50"><Icons.CakeSolid /></span>}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm truncate pr-6 text-[#4A403A] dark:text-[#F3EFE0]">{item.title}</h3>
-                        <p className="text-xs text-[#B0A69D] dark:text-[#E6DCCF] mt-0.5 truncate">
-                          {item.selectedOptions?.size || 'Standard'} • {item.selectedOptions?.flavor || 'Vanilla'}
-                        </p>
-                        
-                        <div className="flex justify-between items-center mt-2">
-                            
-                            {/* 3. NEW: QUANTITY CONTROLS */}
-                            <div className="flex items-center bg-[#F9F7F2] dark:bg-[#2C2622] rounded-lg border border-[#E6DCCF] dark:border-[#4A403A] h-8">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleQuantityChange(index, -1); }} 
-                                className="w-8 h-full flex items-center justify-center text-[#8B5E3C] dark:text-[#F3EFE0] hover:bg-[#E6DCCF] dark:hover:bg-[#4A403A] rounded-l-lg transition"
-                              >
-                                -
-                              </button>
-                              <span className="text-xs font-bold text-[#4A403A] dark:text-[#F3EFE0] w-6 text-center">{item.quantity}</span>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); handleQuantityChange(index, 1); }} 
-                                className="w-8 h-full flex items-center justify-center text-[#8B5E3C] dark:text-[#F3EFE0] hover:bg-[#E6DCCF] dark:hover:bg-[#4A403A] rounded-r-lg transition"
-                              >
-                                +
-                              </button>
-                            </div>
-
-                            <span className="text-sm font-bold text-[#C59D5F]">₱{(item.price * item.quantity).toLocaleString()}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                {/* ✅ FIXED: Use item.id for removal */}
-                <button onClick={(e) => { e.stopPropagation(); removeFromCart(item.id); }} className="absolute top-3 right-3 text-xs text-red-400 font-bold p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg z-20">✕</button>
-              </div>
-            ))}
-          </div>
-
-          {/* Sticky Bottom Bar */}
-          <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-[#2C2622] border-t border-[#E6DCCF] dark:border-[#4A403A] p-4 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-30 pb-safe">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-[10px] text-[#B0A69D] dark:text-[#E6DCCF] uppercase font-bold">Total ({selectedIndices.length})</span>
-                <span className="text-xl font-extrabold text-[#C59D5F]">₱{selectedSubtotal.toLocaleString()}</span>
-              </div>
-              <button onClick={handleProceedToCheckout} disabled={selectedIndices.length === 0}
-                className="bg-[#4A403A] dark:bg-[#C59D5F] text-white px-8 py-3 rounded-xl font-bold shadow-lg active:scale-95 transition disabled:opacity-50 disabled:scale-100">
-                {user ? 'Check Out' : 'Login to Checkout'}
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <nav className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-purple-600 cursor-pointer" onClick={() => navigate('/shop')}>
+            Cake AR
+          </h1>
+          <button
+            onClick={() => navigate('/shop')}
+            className="text-gray-700 hover:text-purple-600 font-medium"
+          >
+            ← Continue Shopping
+          </button>
         </div>
-    </>
+      </nav>
+
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <h1 className="text-3xl font-bold text-gray-800 mb-8">Shopping Cart ({getCartCount()} items)</h1>
+
+        {cartItems.length === 0 ? (
+          <div className="bg-white rounded-xl shadow-md p-12 text-center">
+            <p className="text-xl text-gray-600 mb-6">Your cart is empty</p>
+            <button
+              onClick={() => navigate('/shop')}
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700"
+            >
+              Start Shopping
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items */}
+            <div className="lg:col-span-2 space-y-4">
+              {cartItems.map((item, index) => (
+                <div key={`${item._id}-${index}`} className="bg-white rounded-xl shadow-md p-6">
+                  <div className="flex gap-6">
+                    <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      {item.images && item.images[0] ? (
+                        <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover rounded-lg" />
+                      ) : (
+                        <span className="text-4xl">🎂</span>
+                      )}
+                    </div>
+
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">{item.name}</h3>
+                      <p className="text-gray-600 text-sm mb-2 capitalize">Size: {item.size}</p>
+                      <p className="text-xl font-bold text-purple-600">{formatCurrency(item.price)}</p>
+                    </div>
+
+                    <div className="flex flex-col items-end justify-between">
+                      <button
+                        onClick={() => removeFromCart(item._id, item.customization)}
+                        className="text-red-600 hover:text-red-800 font-medium text-sm"
+                      >
+                        Remove
+                      </button>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => updateQuantity(item._id, item.quantity - 1, item.customization)}
+                          className="w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 font-semibold"
+                        >
+                          −
+                        </button>
+                        <span className="font-semibold w-8 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item._id, item.quantity + 1, item.customization)}
+                          className="w-8 h-8 bg-gray-200 rounded-lg hover:bg-gray-300 font-semibold"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl shadow-md p-6 sticky top-4">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Order Summary</h2>
+
+                <div className="space-y-3 mb-6">
+                  <div className="flex justify-between text-gray-600">
+                    <span>Subtotal ({getCartCount()} items)</span>
+                    <span>{formatCurrency(getCartTotal())}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Shipping</span>
+                    <span>{formatCurrency(50)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Tax (12% VAT)</span>
+                    <span>{formatCurrency(getCartTotal() * 0.12)}</span>
+                  </div>
+                  <div className="border-t pt-3">
+                    <div className="flex justify-between text-xl font-bold text-gray-800">
+                      <span>Total</span>
+                      <span>{formatCurrency(getCartTotal() + 50 + getCartTotal() * 0.12)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 text-white font-semibold py-4 rounded-lg hover:from-purple-700 hover:to-indigo-800 transform hover:-translate-y-0.5 transition duration-200"
+                >
+                  Proceed to Checkout
+                </button>
+
+                <button
+                  onClick={() => navigate('/shop')}
+                  className="w-full mt-3 bg-white border-2 border-purple-600 text-purple-600 font-semibold py-3 rounded-lg hover:bg-purple-50 transition"
+                >
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

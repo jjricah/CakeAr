@@ -1,27 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const { 
-  createOrder, 
-  getMyOrders, 
-  getSellerOrders, 
+const {
+  createOrder,
+  getOrderById,
+  getMyOrders,
+  updateOrderToPaid,
   updateOrderStatus,
-  deleteOrderAdmin, 
-  getAdminOrders,
-  createOrderFromDesign
+  trackOrder,
 } = require('../controllers/orderController');
+const { protect } = require('../middleware/authMiddleware');
 
-// Buyer Routes
-router.post('/', protect, createOrder);        // Place an Order (from Cart items)
-router.post('/design', protect, createOrderFromDesign); // Finalize custom design order
-router.get('/my-orders', protect, getMyOrders); // View Buyer History
-
-// Seller Routes
-router.get('/seller-orders', protect, getSellerOrders); // View Seller Dashboard
-router.put('/:id/status', protect, updateOrderStatus);  // Update Status (Triggers Notification)
-
-// --- ADMIN ROUTES ---
-router.get('/admin/all', protect, getAdminOrders); // NEW ADMIN VIEW ROUTE
-router.delete('/admin/:id', protect, deleteOrderAdmin); // NEW ADMIN DELETE ROUTE
+router.route('/').post(protect, createOrder);
+router.route('/myorders').get(protect, getMyOrders);
+router.route('/track/:orderNumber').get(trackOrder);
+router.route('/:id').get(protect, getOrderById);
+router.route('/:id/pay').put(protect, updateOrderToPaid);
+router.route('/:id/status').put(protect, updateOrderStatus);
 
 module.exports = router;

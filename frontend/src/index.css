@@ -1,22 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* ADD THIS GLOBAL STYLE BLOCK */
-@layer base {
-  body {
-    /* Refined Light Base Color: Slightly deeper than F3EFE0 */
-    @apply bg-[#F5F2E9] text-[#4A403A]; 
-  }
-  
-  /* Dark Mode Overrides: Deeper background for better contrast */
-  .dark body {
-    @apply bg-[#221C18] text-[#F3EFE0]; 
-  }
-}
-/* END GLOBAL STYLE BLOCK */
-
-/* Optional: Scrollbar styling for better UX in dark mode */
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-[#8B5E3C] dark:bg-[#C59D5F];
-}

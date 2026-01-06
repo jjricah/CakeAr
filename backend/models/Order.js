@@ -1,80 +1,118 @@
 const mongoose = require('mongoose');
 
 const orderItemSchema = new mongoose.Schema({
-    title: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    price: { type: Number, required: true },
-    image: { type: String, required: true },
-    type: { type: String, enum: ['standard', 'custom'], default: 'standard' },
-    product: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product',
-    },
-    designSubmission: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'DesignSubmission',
-    },
-    baker: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'User'
-    }
+  product: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+  price: {
+    type: Number,
+    required: true,
+  },
+  image: {
+    type: String,
+  },
+  customization: {
+    type: Object,
+  },
 });
 
-const orderSchema = new mongoose.Schema({
-    buyer: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'User'
+const orderSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
-    items: [orderItemSchema],
-    totalAmount: {
-        type: Number,
-        required: true,
-        default: 0
-    },
+    orderItems: [orderItemSchema],
     shippingAddress: {
-        street: { type: String, required: true },
-        city: { type: String, required: true },
-        barangay: { type: String, required: true },
+      fullName: { type: String, required: true },
+      address: { type: String, required: true },
+      city: { type: String, required: true },
+      postalCode: { type: String, required: true },
+      country: { type: String, required: true },
+      phone: { type: String, required: true },
     },
     paymentMethod: {
-        type: String,
-        required: true,
-        enum: ['COD', 'GCash']
+      type: String,
+      required: true,
+      enum: ['card', 'paypal', 'cash'],
+      default: 'card',
     },
-    paymentReference: {
-        type: String
+    paymentResult: {
+      id: String,
+      status: String,
+      updateTime: String,
+      emailAddress: String,
     },
-    proofOfPaymentImage: {
-        type: String
+    itemsPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
-    dateNeeded: {
-        type: Date,
-        required: true
+    taxPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
-    specialRequests: {
-        type: String
+    shippingPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
-    orderStatus: {
-        type: String,
-        required: true,
-        enum: ['pending_review', 'accepted', 'baking', 'ready_to_ship', 'completed', 'cancelled'],
-        default: 'pending_review'
+    totalPrice: {
+      type: Number,
+      required: true,
+      default: 0.0,
     },
-    paymentStatus: {
-        type: String,
-        required: true,
-        enum: ['unpaid', 'pending_verification', 'verified', 'failed', 'paid'],
-        default: 'unpaid'
+    isPaid: {
+      type: Boolean,
+      required: true,
+      default: false,
     },
-    deliveryDetails: {
-        trackingNumber: { type: String },
-        courier: { type: String },
-        estimatedDelivery: { type: Date }
-    }
-}, {
-    timestamps: true
+    paidAt: {
+      type: Date,
+    },
+    isDelivered: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+    deliveredAt: {
+      type: Date,
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'confirmed', 'preparing', 'ready', 'out-for-delivery', 'delivered', 'cancelled'],
+      default: 'pending',
+    },
+    orderNumber: {
+      type: String,
+      unique: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Generate order number before saving
+orderSchema.pre('save', async function (next) {
+  if (!this.orderNumber) {
+    const count = await mongoose.model('Order').countDocuments();
+    this.orderNumber = `ORD${Date.now()}-${count + 1}`;
+  }
+  next();
 });
 
 module.exports = mongoose.model('Order', orderSchema);
